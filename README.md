@@ -4,13 +4,28 @@ A cross-platform replacement for Windows `type` (and a friendlier `cat`) that pr
 
 ## Install
 
+Install straight from GitHub with [uv](https://docs.astral.sh/uv/):
+
 ```bash
-uv tool install --from . ctype
-# or, if published to a wheel index:
-uv tool install ctype
+uv tool install git+https://github.com/forensicmike/ctype
 ```
 
-`uv tool install` drops a fast `ctype.exe` shim into your user `~/.local/bin` (or `%USERPROFILE%\.local\bin` on Windows), which `uv` adds to your `PATH`.
+Pin a branch, tag, or commit by appending `@<ref>`:
+
+```bash
+uv tool install git+https://github.com/forensicmike/ctype@main
+uv tool install git+https://github.com/forensicmike/ctype@v0.2.0
+```
+
+Update later with `uv tool upgrade ctype`. To uninstall: `uv tool uninstall ctype`.
+
+`uv tool install` drops a fast `ctype.exe` shim into your user `~/.local/bin` (or `%USERPROFILE%\.local\bin` on Windows), which `uv` adds to your `PATH`. If you've cloned the repo locally, `uv tool install --from . ctype` from the repo root works too.
+
+For a one-off run without a persistent install:
+
+```bash
+uvx --from git+https://github.com/forensicmike/ctype ctype src/main.py
+```
 
 ## Examples
 
