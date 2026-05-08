@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ctype"
+version = "0.1.0"
+description = "Cross-platform 'type'/'cat' replacement with syntax highlighting via rich."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "mike", email = "mwilliamson.cgy@gmail.com" }]
+keywords = ["cat", "type", "syntax-highlighting", "cli", "rich"]
+dependencies = [
+    "rich>=13.7.0",
+]
+
+[project.scripts]
+ctype = "ctype.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ctype"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/ctype", "README.md", "AGENTS.md", "pyproject.toml"]
+
+# ---------------------------------------------------------------------------
+# Ruff (medium strictness)
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "I",    # Import sort
+    "E",    # Errors
+    "W",    # Warnings
+    "F",    # Pyflakes
+    "UP",   # Pyupgrade
+    "B",    # Bugbear
+    "SIM",  # Simplify
+    "ARG",  # Unused arguments
+    "COM",  # Comma rules
+    "Q",    # Quote rules
+    "RET",  # Return-style
+    "PIE",  # Misc lint
+]
+ignore = [
+    "E501",   # line-too-long (handled by formatter)
+    "COM812", # missing-trailing-comma (conflicts with formatter)
+    "Q000",   # bad-quotes-inline-string
+    "SIM108", # ternary suggestion can hurt readability
+]
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.isort]
+known-first-party = ["ctype"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+skip-magic-trailing-comma = false
