@@ -18,7 +18,7 @@ from ctype.config import (
     coerce_value,
     save_settings,
 )
-from ctype.renderer import render_file
+from ctype.renderer import looks_binary, render_file, render_hex, render_tree
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -41,11 +41,13 @@ Available commands:
 
 def _print_themes(console: Console) -> None:
     from rich.columns import Columns
+
     console.print(Columns(AVAILABLE_THEMES, equal=True, expand=True, title="Themes"))
 
 
 def _print_settings(console: Console, settings: dict[str, Any]) -> None:
     from rich.table import Table
+
     table = Table(title="ctype settings", caption=f"Stored at: {CONFIG_FILE}")
     table.add_column("Key", style="cyan")
     table.add_column("Value", style="white")
@@ -124,12 +126,18 @@ def run_repl(console: Console, settings: dict[str, Any]) -> int:
             console.print(f"[red]Parse error: {exc}[/]")
             continue
         for token in tokens:
-            render_file(
-                console,
-                Path(token),
-                theme=settings["theme"],
-                line_numbers=settings["line_numbers"],
-                background_color=settings["background_color"],
-                tab_size=settings["tab_size"],
-                word_wrap=settings["word_wrap"],
-            )
+            target = Path(token)
+            if target.is_dir():
+                render_tree(console, target)
+            elif target.is_file() and looks_binary(target):
+                render_hex(console, target)
+            else:
+                render_file(
+                    console,
+                    target,
+                    theme=settings["theme"],
+                    line_numbers=settings["line_numbers"],
+                    background_color=settings["background_color"],
+                    tab_size=settings["tab_size"],
+                    word_wrap=settings["word_wrap"],
+                )

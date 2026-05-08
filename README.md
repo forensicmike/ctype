@@ -20,10 +20,16 @@ ctype foo.cs bar.js baz.py              # multiple files
 ctype --theme github-dark main.rs       # one-off theme override
 ctype -n -r 1:40 main.cs                # line numbers, lines 1..40
 ctype -l json < payload.txt             # pipe stdin, force a lexer
+ctype src/                              # directory → rich tree view
+ctype --tree-depth 5 -a node_modules    # deeper tree, include hidden
+ctype -x image.png                      # colored hex/ASCII dump
+ctype -w live.log                       # tail-f-style watch, redraws on change
 ctype --config-set theme dracula        # persist your favourite theme
 ctype --config-set line_numbers true    # …or always show line numbers
 ctype --list-themes                     # browse available themes
 ctype --repl                            # interactive mode
 ```
+
+Binary files are auto-detected and rendered as a hex dump unless you force a lexer with `-l`. Pass `-x` to force hex on a text file too.
 
 Run `ctype --help` for the full argparse schema, or `:help` inside the REPL.

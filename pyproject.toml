@@ -4,24 +4,55 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ctype"
-version = "0.1.0"
+version = "0.2.0"
 description = "Cross-platform 'type'/'cat' replacement with syntax highlighting via rich."
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "mike", email = "mwilliamson.cgy@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "forensicmike" }]
 keywords = ["cat", "type", "syntax-highlighting", "cli", "rich"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Terminals",
+    "Topic :: Utilities",
+    "Topic :: Software Development",
+]
 dependencies = [
     "rich>=13.7.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/forensicmike/ctype"
+Repository = "https://github.com/forensicmike/ctype"
+Issues = "https://github.com/forensicmike/ctype/issues"
+
 [project.scripts]
 ctype = "ctype.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ctype"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/ctype", "README.md", "AGENTS.md", "pyproject.toml"]
+include = ["src/ctype", "README.md", "AGENTS.md", "LICENSE", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
 
 # ---------------------------------------------------------------------------
 # Ruff (medium strictness)
@@ -55,6 +86,11 @@ ignore = [
 fixable = ["ALL"]
 unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "ARG001",  # Pytest fixtures are passed as args even when only used for side effects
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["ctype"]
