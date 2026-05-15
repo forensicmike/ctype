@@ -14,7 +14,7 @@ Pin a branch, tag, or commit by appending `@<ref>`:
 
 ```bash
 uv tool install git+https://github.com/forensicmike/ctype@main
-uv tool install git+https://github.com/forensicmike/ctype@v0.2.0
+uv tool install git+https://github.com/forensicmike/ctype@v0.3.0
 ```
 
 Update later with `uv tool upgrade ctype`. To uninstall: `uv tool uninstall ctype`.
@@ -36,6 +36,7 @@ ctype --theme github-dark main.rs       # one-off theme override
 ctype -n -r 1:40 main.cs                # line numbers, lines 1..40
 ctype -l json < payload.txt             # pipe stdin, force a lexer
 ctype src/                              # directory → rich tree view
+ctype -c src/                           # tree + dump every file's contents
 ctype --tree-depth 5 -a node_modules    # deeper tree, include hidden
 ctype -x image.png                      # colored hex/ASCII dump
 ctype -w live.log                       # tail-f-style watch, redraws on change

@@ -144,6 +144,15 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Include hidden files in directory tree mode.",
     )
+    parser.add_argument(
+        "-c",
+        "--contents",
+        action="store_true",
+        help=(
+            "In directory mode, after the tree, dump each file's contents under a header "
+            "separator. Syntax is auto-detected per file; binaries are skipped with a note."
+        ),
+    )
 
     parser.add_argument("--repl", action="store_true", help="Launch the interactive REPL.")
     parser.add_argument("--list-themes", action="store_true", help="List curated themes and exit.")
@@ -292,7 +301,22 @@ def _dispatch_path(
 
     if path.is_dir():
         depth = None if args.tree_depth == 0 else args.tree_depth
-        return render_tree(console, path, max_depth=depth, show_hidden=args.all)
+        rc = render_tree(console, path, max_depth=depth, show_hidden=args.all)
+        if rc == 0 and args.contents:
+            from ctype.renderer import render_tree_contents
+
+            rc = render_tree_contents(
+                console,
+                path,
+                max_depth=depth,
+                show_hidden=args.all,
+                theme=effective["theme"],
+                line_numbers=effective["line_numbers"],
+                background_color=effective["background_color"],
+                tab_size=effective["tab_size"],
+                word_wrap=effective["word_wrap"],
+            )
+        return rc
 
     # Explicit -x, or auto: binary file with no forced lexer.
     if args.hex or (path.is_file() and args.language is None and looks_binary(path)):

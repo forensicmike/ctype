@@ -64,6 +64,14 @@ def test_parser_range_parsed():
     assert ns.range == (10, 20)
 
 
+def test_parser_contents_flag():
+    parser = build_parser()
+    ns = parser.parse_args(["-c", "."])
+    assert ns.contents is True
+    ns2 = parser.parse_args(["."])
+    assert ns2.contents is False
+
+
 def test_parse_range_valid():
     assert _parse_range("1:10") == (1, 10)
     assert _parse_range("5:5") == (5, 5)
