@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -153,6 +153,73 @@ def _walk_tree(
             )
         else:
             parent.add(child.name)
+
+
+def _iter_tree_files(
+    root: Path,
+    *,
+    max_depth: int | None,
+    show_hidden: bool,
+) -> Iterator[Path]:
+    """Yield files under ``root`` in the same order ``render_tree`` displays them."""
+
+    def walk(path: Path, depth: int) -> Iterator[Path]:
+        if max_depth is not None and depth >= max_depth:
+            return
+        try:
+            children = sorted(
+                path.iterdir(),
+                key=lambda p: (not p.is_dir(), p.name.lower()),
+            )
+        except (PermissionError, OSError):
+            return
+        for child in children:
+            if not show_hidden and child.name.startswith("."):
+                continue
+            if child.is_dir():
+                yield from walk(child, depth + 1)
+            else:
+                yield child
+
+    yield from walk(root, 0)
+
+
+def render_tree_contents(
+    console: Console,
+    root: Path,
+    *,
+    max_depth: int | None,
+    show_hidden: bool,
+    theme: str,
+    line_numbers: bool,
+    background_color: str | None,
+    tab_size: int,
+    word_wrap: bool,
+) -> int:
+    """Dump every file under ``root`` with a per-file rule header. Binaries are skipped."""
+    if not root.is_dir():
+        console.print(f"[red]ctype: {root}: Not a directory[/]")
+        return 1
+
+    rc = 0
+    for file_path in _iter_tree_files(root, max_depth=max_depth, show_hidden=show_hidden):
+        rel = file_path.relative_to(root)
+        console.rule(f"[bold cyan]{rel.as_posix()}[/]")
+        if looks_binary(file_path):
+            console.print("[dim]<binary file, skipped>[/]")
+            continue
+        result = render_file(
+            console,
+            file_path,
+            theme=theme,
+            line_numbers=line_numbers,
+            background_color=background_color,
+            tab_size=tab_size,
+            word_wrap=word_wrap,
+        )
+        if result and not rc:
+            rc = result
+    return rc
 
 
 # ---------------------------------------------------------------------------

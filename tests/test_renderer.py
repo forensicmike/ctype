@@ -7,7 +7,27 @@ from io import StringIO
 import pytest
 from rich.console import Console
 
-from ctype.renderer import looks_binary, render_file, render_hex, render_tree
+from ctype.renderer import (
+    looks_binary,
+    render_file,
+    render_hex,
+    render_tree,
+    render_tree_contents,
+)
+
+
+def _render_tree_contents_defaults(console, root, *, max_depth=None, show_hidden=False):
+    return render_tree_contents(
+        console,
+        root,
+        max_depth=max_depth,
+        show_hidden=show_hidden,
+        theme="monokai",
+        line_numbers=False,
+        background_color=None,
+        tab_size=4,
+        word_wrap=False,
+    )
 
 
 def _capture_console() -> tuple[Console, StringIO]:
@@ -123,6 +143,58 @@ def test_render_file_errors_on_missing(tmp_path, missing):
         word_wrap=False,
     )
     assert rc == 1
+
+
+def test_render_tree_contents_dumps_text_and_skips_binary(tmp_path):
+    (tmp_path / "snippet.py").write_text("answer = 42\n")
+    (tmp_path / "notes.txt").write_text("hello there\n")
+    (tmp_path / "blob.bin").write_bytes(b"AB\x00CD")
+    console, buf = _capture_console()
+    rc = _render_tree_contents_defaults(console, tmp_path)
+    assert rc == 0
+    out = buf.getvalue()
+    assert "snippet.py" in out
+    assert "notes.txt" in out
+    assert "blob.bin" in out
+    assert "answer = 42" in out
+    assert "hello there" in out
+    assert "<binary file, skipped>" in out
+
+
+def test_render_tree_contents_skips_hidden_by_default(tmp_path):
+    (tmp_path / ".hidden.py").write_text("secret = 1\n")
+    (tmp_path / "visible.py").write_text("shown = 2\n")
+    console, buf = _capture_console()
+    _render_tree_contents_defaults(console, tmp_path)
+    out = buf.getvalue()
+    assert "shown = 2" in out
+    assert "secret = 1" not in out
+
+
+def test_render_tree_contents_includes_hidden_when_requested(tmp_path):
+    (tmp_path / ".hidden.py").write_text("secret = 1\n")
+    console, buf = _capture_console()
+    _render_tree_contents_defaults(console, tmp_path, show_hidden=True)
+    assert "secret = 1" in buf.getvalue()
+
+
+def test_render_tree_contents_respects_max_depth(tmp_path):
+    nested = tmp_path / "a" / "b"
+    nested.mkdir(parents=True)
+    (tmp_path / "top.py").write_text("top_val = 1\n")
+    (nested / "deep.py").write_text("deep_val = 2\n")
+    console, buf = _capture_console()
+    _render_tree_contents_defaults(console, tmp_path, max_depth=1)
+    out = buf.getvalue()
+    assert "top_val = 1" in out
+    assert "deep_val = 2" not in out
+
+
+def test_render_tree_contents_errors_on_file(tmp_path):
+    f = tmp_path / "x.txt"
+    f.write_text("hi")
+    console, _buf = _capture_console()
+    assert _render_tree_contents_defaults(console, f) == 1
 
 
 def test_render_file_renders_python_source(tmp_path):
