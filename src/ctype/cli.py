@@ -134,9 +134,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tree-depth",
         type=int,
-        default=3,
+        default=None,
         metavar="N",
-        help="Max depth for directory tree mode (use 0 for unlimited).",
+        help=(
+            "Max depth for directory mode (use 0 for unlimited). "
+            "Default: 3 for the tree, 1 for --contents."
+        ),
     )
     parser.add_argument(
         "-a",
@@ -150,7 +153,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "In directory mode, after the tree, dump each file's contents under a header "
-            "separator. Syntax is auto-detected per file; binaries are skipped with a note."
+            "separator. Only the top-level folder is included by default; pass "
+            "--tree-depth N to recurse (0 = unlimited). Binaries are skipped with a note."
         ),
     )
 
@@ -300,21 +304,32 @@ def _dispatch_path(
     from ctype.renderer import looks_binary, render_file, render_hex, render_tree
 
     if path.is_dir():
-        depth = None if args.tree_depth == 0 else args.tree_depth
-        rc = render_tree(console, path, max_depth=depth, show_hidden=args.all)
+        # tree-depth: user-set wins; otherwise 3 for the tree, 1 for --contents.
+        # A literal 0 means "unlimited" and maps to None.
+        user_depth = args.tree_depth
+        tree_depth = 3 if user_depth is None else user_depth
+        tree_max = None if tree_depth == 0 else tree_depth
+        rc = render_tree(console, path, max_depth=tree_max, show_hidden=args.all)
         if rc == 0 and args.contents:
             from ctype.renderer import render_tree_contents
 
+            contents_depth = 1 if user_depth is None else user_depth
+            contents_max = None if contents_depth == 0 else contents_depth
             rc = render_tree_contents(
                 console,
                 path,
-                max_depth=depth,
+                max_depth=contents_max,
                 show_hidden=args.all,
                 theme=effective["theme"],
                 line_numbers=effective["line_numbers"],
                 background_color=effective["background_color"],
                 tab_size=effective["tab_size"],
                 word_wrap=effective["word_wrap"],
+            )
+        elif rc == 0:
+            console.print(
+                "[dim italic]Tip: pass -c to also dump each file's contents "
+                "(top-level only; add --tree-depth N to recurse).[/]"
             )
         return rc
 

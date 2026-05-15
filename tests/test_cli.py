@@ -15,7 +15,7 @@ def test_parser_minimal():
     assert [str(p) for p in ns.files] == ["foo.py"]
     assert ns.hex is False
     assert ns.watch is False
-    assert ns.tree_depth == 3
+    assert ns.tree_depth is None
     assert ns.all is False
 
 
